@@ -11,54 +11,52 @@ server.on('request', (req, res) => {
 
   const filepath = path.join(__dirname, 'files', pathname);
 
-  const writeStream = fs.createWriteStream(filepath, {
-    flags: 'wx',
-  });
-
   if (pathname.includes('/')) {
-    res.statusCode = 400;
+    res.writeHead(400);
     res.end('Bad request');
     return;
   }
 
   switch (req.method) {
     case 'POST':
-      const limitStream = new LimitSizeStream({ limit: 1024 * 1024 });
-
-      req.on('aborted', () => {
-        fs.unlink(filepath, (err) => {
-          if (err) throw new Error(err);
-          writeStream.destroy();
-        });
-      });
-
-      limitStream.on('error', (err) => {
-        fs.unlink(filepath, (err) => {
-          errorCreateFile = true;
-          if (err) throw err;
-          res.statusCode = 413;
-          writeStream.destroy();
-          res.end('File is too big!');
+      fs.access(filepath, fs.constants.F_OK, (err) => {
+        if (!err) {
+          res.writeHead(409);
+          res.end('File already exists');
           return;
-        });
-      });
-
-      writeStream.on('error', (err) => {
-        errorCreateFile = true;
-        res.statusCode = 409;
-        res.end('File already exists');
-        return;
-      });
-
-      writeStream.on('close', () => {
-        if (!errorCreateFile) {
-          res.statusCode = 200;
-          res.end('sucessfull!');
         }
+
+        const writeStream = fs.createWriteStream(filepath);
+        const limitedStream = new LimitSizeStream({ limit: 1024 * 1024 });
+
+        req.on('aborted', () => {
+          writeStream.destroy();
+          fs.unlink(filepath, (err) => {
+            if (err) throw new Error();
+          });
+        });
+
+        limitedStream.on('error', (err) => {
+          writeStream.destroy();
+          fs.unlink(filepath, (err) => {
+            if (err) throw new Error();
+          });
+          res.writeHead(413);
+          res.end('File is too big');
+        });
+
+        writeStream.on('error', (err) => {
+          res.writeHead(500);
+          res.end('500 error');
+        });
+
+        writeStream.on('finish', () => {
+          res.writeHead(200);
+          res.end('Successfull!');
+        });
       });
 
       req.pipe(limitStream).pipe(writeStream);
-
       break;
 
     default:
