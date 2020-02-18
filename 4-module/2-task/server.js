@@ -27,36 +27,35 @@ server.on('request', (req, res) => {
         }
 
         const writeStream = fs.createWriteStream(filepath);
-        const limitedStream = new LimitSizeStream({ limit: 1024 * 1024 });
+        const limitStream = new LimitSizeStream({ limit: 1024 * 1024 });
 
-        req.on('aborted', () => {
-          writeStream.destroy();
-          fs.unlink(filepath, (err) => {
-            if (err) throw new Error();
+        req
+          .on('aborted', () => {
+            writeStream.destroy();
+            fs.unlink(filepath, (err) => {
+              if (err) throw new Error();
+            });
+          })
+          .pipe(limitStream)
+          .on('error', (err) => {
+            writeStream.destroy();
+            fs.unlink(filepath, (err) => {
+              if (err) throw new Error();
+            });
+            res.writeHead(413);
+            res.end('File is too big');
+          })
+          .pipe(writeStream)
+          .on('error', (err) => {
+            res.writeHead(500);
+            res.end('500 error');
+          })
+          .on('finish', () => {
+            res.writeHead(200);
+            res.end('Successfull!');
           });
-        });
-
-        limitedStream.on('error', (err) => {
-          writeStream.destroy();
-          fs.unlink(filepath, (err) => {
-            if (err) throw new Error();
-          });
-          res.writeHead(413);
-          res.end('File is too big');
-        });
-
-        writeStream.on('error', (err) => {
-          res.writeHead(500);
-          res.end('500 error');
-        });
-
-        writeStream.on('finish', () => {
-          res.writeHead(200);
-          res.end('Successfull!');
-        });
       });
 
-      req.pipe(limitStream).pipe(writeStream);
       break;
 
     default:
