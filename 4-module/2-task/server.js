@@ -16,14 +16,6 @@ server.on('request', (req, res) => {
     flags: 'wx',
   });
 
-  writeStream.on('error', (err) => {
-    errorCreateFile = true;
-    console.log('Error create file!');
-    res.writeHead(409);
-    res.end('File already exists');
-    return;
-  });
-
   if (pathname.includes('/')) {
     res.writeHead(400);
     res.end('Bad request');
@@ -44,16 +36,21 @@ server.on('request', (req, res) => {
         fs.unlink(filepath, (err) => {
           errorCreateFile = true;
           if (err) throw err;
-          console.log('File is too big!');
           res.writeHead(413);
           res.end('File is too big!');
           return;
         });
       });
 
+      writeStream.on('error', (err) => {
+        errorCreateFile = true;
+        res.writeHead(409);
+        res.end('File already exists');
+        return;
+      });
+
       writeStream.on('close', () => {
         if (!errorCreateFile) {
-          console.log('close');
           res.writeHead(200);
           res.end('sucessfull!');
         }
