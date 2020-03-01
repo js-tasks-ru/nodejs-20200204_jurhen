@@ -2,10 +2,11 @@
 const Product = require('../models/Product');
 
 module.exports.productsByQuery = async function productsByQuery(ctx, next) {
-  const queryProduct = ctx.params.query;
+  const queryProduct = ctx.request.query.query;
   let product;
+
   try {
-    product = await Product.findOne(
+    product = await Product.find(
       {$text: {$search: queryProduct}},
       {score: {$meta: 'textScore'}},
     ).sort({score: {$meta: 'textScore'}});
