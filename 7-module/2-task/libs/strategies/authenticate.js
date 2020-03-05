@@ -7,9 +7,6 @@ module.exports = async function authenticate(
   displayName,
   done,
 ) {
-  console.log(strategy);
-  console.log(email);
-  console.log(displayName);
   if (!email) {
     done(null, false, `Не указан email`);
     return;
