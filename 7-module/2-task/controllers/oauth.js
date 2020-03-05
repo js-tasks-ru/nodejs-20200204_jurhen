@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 const passport = require('../libs/passport');
 const config = require('../config');
 const uuid = require('uuid/v4');
@@ -5,10 +6,10 @@ const uuid = require('uuid/v4');
 module.exports.oauth = async function oauth(ctx, next) {
   const provider = ctx.params.provider;
 
-  await passport.authenticate(
-      provider,
-      config.providers[provider].options,
-  )(ctx, next);
+  await passport.authenticate(provider, config.providers[provider].options)(
+    ctx,
+    next,
+  );
 
   ctx.status = 200;
   ctx.body = {status: 'ok', location: ctx.response.get('location')};
