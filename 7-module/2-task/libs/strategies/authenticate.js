@@ -7,24 +7,30 @@ module.exports = async function authenticate(
   displayName,
   done,
 ) {
+  console.log(strategy);
+  console.log(email);
+  console.log(displayName);
   if (!email) {
-    done(null, false, `You have to specify email adress`);
+    done(null, false, `Не указан email`);
     return;
   }
 
-  const user = await User.findOne({email});
+  let user = await User.findOne({email});
 
-  if (!user) {
-    try {
-      await User.create({
-        email,
-        displayName,
-      });
-    } catch (err) {
-      done(null, false, `The email is wrong`);
-      return;
-    }
+  if (user) {
+    done(null, user);
+    return;
   }
 
-  done(null, user);
+  try {
+    user = await User.create({
+      email,
+      displayName,
+    });
+
+    done(null, user);
+  } catch (err) {
+    done(err, false, `ValidationError`);
+    return;
+  }
 };
