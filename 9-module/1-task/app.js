@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 const path = require('path');
 const fs = require('fs');
 const Koa = require('koa');
@@ -7,7 +8,10 @@ const handleMongooseValidationError = require('./libs/validationErrors');
 const mustBeAuthenticated = require('./libs/mustBeAuthenticated');
 const {recommendationsList} = require('./controllers/recommendations');
 const {
-  productsBySubcategory, productsByQuery, productList, productById,
+  productsBySubcategory,
+  productsByQuery,
+  productList,
+  productById,
 } = require('./controllers/products');
 const {categoryList} = require('./controllers/categories');
 const {login} = require('./controllers/login');
@@ -85,9 +89,14 @@ router.post('/register', handleMongooseValidationError, register);
 router.post('/confirm', confirm);
 
 router.get('/orders', mustBeAuthenticated, getOrdersList);
-router.post('/orders', mustBeAuthenticated, handleMongooseValidationError, checkout);
+router.post(
+  '/orders',
+  mustBeAuthenticated,
+  handleMongooseValidationError,
+  checkout,
+);
 
-router.get('/messages', messageList);
+router.get('/messages', mustBeAuthenticated, messageList);
 
 app.use(router.routes());
 
