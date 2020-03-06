@@ -3,7 +3,11 @@ const uuid = require('uuid/v4');
 const Router = require('koa-router');
 const handleMongooseValidationError = require('./libs/validationErrors');
 const mustBeAuthenticated = require('./libs/mustBeAuthenticated');
-const {productsBySubcategory, productList, productById} = require('./controllers/products');
+const {
+  productsBySubcategory,
+  productList,
+  productById,
+} = require('./controllers/products');
 const {categoryList} = require('./controllers/categories');
 const {login} = require('./controllers/login');
 const {oauth, oauthCallback} = require('./controllers/oauth');
